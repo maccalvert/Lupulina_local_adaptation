@@ -1,0 +1,11 @@
+Results
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: height_cm
+                Chisq Df Pr(>Chisq)    
+(Intercept)   99.0284  1     <2e-16 ***
+site           1.0048  2     0.6051    
+nematode       0.0460  1     0.8302    
+site:nematode  0.1394  2     0.9327    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
