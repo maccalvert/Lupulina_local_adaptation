@@ -1,6 +1,7 @@
 #set the working directory 
 library(lme4)
 library(car)
+library(effects)
 
 setwd("~/Box/Wood_Rotation/Truncatula_local_adaptation/")
 
@@ -31,16 +32,17 @@ dat$nematode[Nematode_abs] <- "abs"
 dat$nematode[Nematode_pres] <- "pres"
 
 #Finally, we'll add a block factor to our dataframe using a similar application of grep as above. 
-block1 <- grep("Block1*", dat$block_plot)
-block2 <- grep("Block2*", dat$block_plot)
-block3 <- grep("Block3*", dat$block_plot)
-block4 <- grep("Block4*", dat$block_plot)
-block5 <- grep("Block5*", dat$block_plot)
-block6 <- grep("Block6*", dat$block_plot)
-block7 <- grep("Block7*", dat$block_plot)
-block8 <- grep("Block8*", dat$block_plot)
-block9 <- grep("Block9*", dat$block_plot)
-block10 <- grep("Block10*", dat$block_plot)
+dat$block_plot <- as.character(dat$block_plot)
+block1 <- grep("Block1_*", dat$block_plot)
+block2 <- grep("Block2_*", dat$block_plot)
+block3 <- grep("Block3_*", dat$block_plot)
+block4 <- grep("Block4_*", dat$block_plot)
+block5 <- grep("Block5_*", dat$block_plot)
+block6 <- grep("Block6_*", dat$block_plot)
+block7 <- grep("Block7_*", dat$block_plot)
+block8 <- grep("Block8_*", dat$block_plot)
+block9 <- grep("Block9_*", dat$block_plot)
+block10 <- grep("Block10_*", dat$block_plot)
 
 #add it to a new atomic vector 
 dat$block <- rep(NA,nrow(dat))
@@ -55,6 +57,52 @@ dat$block[block8] <- 8
 dat$block[block9] <- 9
 dat$block[block10] <- 10
 
+#Now, we add genotype
+
+
+MLBS_0202 <- grep("MLBS_02-02*", dat$exp_id)
+MLBS_1003 <- grep("MLBS_10-03*", dat$exp_id)
+MLBS_1407 <- grep("MLBS_14-07*", dat$exp_id)
+MLBS_1708 <- grep("MLBS_17-08*", dat$exp_id)
+PLE_0103 <- grep("PLE_01-03*", dat$exp_id)
+PLE_0202 <- grep("PLE_02-02*", dat$exp_id)
+PLE_0307 <- grep("PLE_03-07*", dat$exp_id)
+PLE_0403 <- grep("PLE_04-03*", dat$exp_id)
+TO_0405 <- grep("TO_04-05*", dat$exp_id)
+TO_0510 <- grep("TO_05-10*", dat$exp_id)
+TO_0705 <- grep("TO_07-05*", dat$exp_id)
+TO_1503 <- grep("TO_15-03*", dat$exp_id)
+
+dat$genotype <- rep(NA, nrow(dat))
+dat$genotype[MLBS_0202] <- "MLBS_0202" 
+dat$genotype[MLBS_1003] <- "MLBS_1003" 
+dat$genotype[MLBS_1407] <- "MLBS_1407" 
+dat$genotype[MLBS_1708] <- "MLBS_1708"
+dat$genotype[PLE_0103] <- "PLE_0103" 
+dat$genotype[PLE_0202] <- "PLE_0202" 
+dat$genotype[PLE_0307] <- "PLE_0307" 
+dat$genotype[PLE_0403] <- "PLE_0403" 
+dat$genotype[TO_0405] <- "TO_0405"
+dat$genotype[TO_0510] <- "TO_0510" 
+dat$genotype[TO_0705] <- "TO_0705" 
+dat$genotype[TO_1503] <- "TO_1503" 
+
+sum(is.na(dat$height_cm[dat$genotype == "MLBS_0202"]))
+sum(is.na(dat$height_cm[dat$genotype == "MLBS_1003"]))
+sum(is.na(dat$height_cm[dat$genotype == "MLBS_1407"]))
+sum(is.na(dat$height_cm[dat$genotype == "MLBS_1708"]))
+
+sum(is.na(dat$height_cm[dat$genotype == "PLE_0103"]))
+sum(is.na(dat$height_cm[dat$genotype == "PLE_0202"]))
+sum(is.na(dat$height_cm[dat$genotype == "PLE_0307"]))
+sum(is.na(dat$height_cm[dat$genotype == "PLE_0403"]))
+
+sum(is.na(dat$height_cm[dat$genotype == "TO_0405"]))
+sum(is.na(dat$height_cm[dat$genotype == "TO_0510"]))
+sum(is.na(dat$height_cm[dat$genotype == "TO_0705"]))
+sum(is.na(dat$height_cm[dat$genotype == "TO_1503"]))
+
+
 #run the full model for main effects of site and nematode treatment and interaction effect.
 fitness_fullmodel <- lm(fruit_mass ~ site + nema_trt + site*nema_trt, data = dat)
 
@@ -63,8 +111,49 @@ anova(fitness_fullmodel)
 
 #How to specific random effects
 
-fullModel <- lmer(height_cm ~ site + nematode + site*nematode + (1|block), data = dat)
-Anova(fullModel)
+fullModel <- lmer(height_cm ~ site + nematode + site*nematode + (1|block) + (1|site:genotype), data = dat)
+#Model_noNesting <- lmer(height_cm ~ site + nematode + site*nematode + (1|block), data = dat)
+
+Anova(fullModel, type = "III")
+#Anova(Model_noNesting, type = "III")
+
+#output the results
+out <- capture.output(Anova(fullModel, type = "III"))
+
+cat("Results", out, file="./results/fullModel_summary.txt", sep="\n", append=FALSE)
+
+#graph the results 
+
+#First get the effects that we can plot
+
+effects <- effect("site*nematode", fullModel) 
+
+pdf("./Results/FullModelFit.pdf")
+ggplot(dat, aes(x=site, y=height_cm, group=nematode, color=nematode)) + 
+  geom_point(position=position_jitterdodge(dodge.width = 0.8, jitter.width = 0.2), alpha=1/3)+
+  geom_line(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8))+
+  #scale_fill_discrete(name = "Nematode treatment", labels = c("absent", "present"))+
+  geom_point(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8),
+             shape=15, size=3.5)+
+  geom_errorbar(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode, ymin=lower, ymax=upper), 
+                position = position_dodge(width = 0.8), 
+                width=0)+
+  ylab("Plant height (cm)")+
+  xlab("Population")+ 
+  theme_classic()
+dev.off()
+
+
+# interaction.plot(algae$herbivores, algae$height, response = predict(algaeFullModel), 
+#                  ylim = range(algae$sqrtArea), trace.label = "Height", las = 1,
+#                  ylab = "Square root surface area (cm)", xlab = "Herbivore treatment")
+# adjustAmount = 0.05
+# points(sqrtArea ~ c(jitter(as.numeric(herbivores), factor = 0.2) + adjustAmount), 
+#        data = subset(algae, height == "low"))
+# points(sqrtArea ~ c(jitter(as.numeric(herbivores), factor = 0.2) - adjustAmount), 
+#        data = subset(algae, height == "mid"), pch = 16)
+
+
 
 
 
