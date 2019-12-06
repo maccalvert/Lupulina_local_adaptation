@@ -2,7 +2,9 @@
 library(lme4)
 library(car)
 library(effects)
-
+##############################################################################################
+#BE SURE TO SET THE WD TO THE NAME OF THIS REPO, E.G. /YOuR/PATH/Lupulina_local_adaptation
+##############################################################################################
 setwd("~/Box/Wood_Rotation/Lupulina_local_adaptation/")
 
 #load in the data 
@@ -102,11 +104,23 @@ sum(is.na(dat$height_cm[dat$genotype == "TO_0510"]))
 sum(is.na(dat$height_cm[dat$genotype == "TO_0705"]))
 sum(is.na(dat$height_cm[dat$genotype == "TO_1503"]))
 
+#Check to ensure the data is normally distributied 
+hist(dat$height_cm[dat$site=="TO" & dat$nematode=="abs"])
+hist(dat$height_cm[dat$site=="TO" & dat$nematode=="pres"])
+hist(dat$height_cm[dat$site=="PLE" & dat$nematode=="abs"])
+hist(dat$height_cm[dat$site=="PLE" & dat$nematode=="pres"])
+hist(dat$height_cm[dat$site=="MLBS" & dat$nematode=="abs"])
+hist(dat$height_cm[dat$site=="MLBS" & dat$nematode=="pres"])
+
+#The assumption of 
 
 #First we'll run the classic two-way ANOVA as initially proposed, 
 
 twoWayAnova <- lm(height_cm ~ site + nematode + site*nematode, data = dat, 
                   contrasts = list(site = contr.sum, nematode = contr.sum))
+
+#Check the assumption of equal variance among all combinations of explanatory variables 
+plot(resid(twoWayAnova))
 
 #To print the 
 Anova(twoWayAnova, type =  "III")
