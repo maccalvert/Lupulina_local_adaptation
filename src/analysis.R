@@ -180,22 +180,22 @@ dev.off()
 
 #First get the effects that we can plot
 
-effects <- effect("site*nematode", fullModel) 
+# effects <- effect("site*nematode", fullModel) 
 
-pdf("./results/FullModelFit.pdf")
-ggplot(dat, aes(x=site, y=height_cm, group=nematode, color=nematode)) + 
-  geom_point(position=position_jitterdodge(dodge.width = 0.8, jitter.width = 0.2), alpha=1/3)+
-  geom_line(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8))+
-  #scale_fill_discrete(name = "Nematode treatment", labels = c("absent", "present"))+
-  geom_point(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8),
-             shape=15, size=3.5)+
-  geom_errorbar(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode, ymin=lower, ymax=upper), 
-                position = position_dodge(width = 0.8), 
-                width=0)+
-  ylab("Plant height (cm)")+
-  xlab("Population")+ 
-  theme_classic()
-dev.off()
+# pdf("./results/FullModelFit.pdf")
+# ggplot(dat, aes(x=site, y=height_cm, group=nematode, color=nematode)) + 
+#   geom_point(position=position_jitterdodge(dodge.width = 0.8, jitter.width = 0.2), alpha=1/3)+
+#   geom_line(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8))+
+#   #scale_fill_discrete(name = "Nematode treatment", labels = c("absent", "present"))+
+#   geom_point(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8),
+#              shape=15, size=3.5)+
+#   geom_errorbar(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode, ymin=lower, ymax=upper), 
+#                 position = position_dodge(width = 0.8), 
+#                 width=0)+
+#   ylab("Plant height (cm)")+
+#   xlab("Population")+ 
+#   theme_classic()
+# dev.off()
 
 
 # interaction.plot(algae$herbivores, algae$height, response = predict(algaeFullModel), 
