@@ -1,4 +1,15 @@
 Results
+Anova Table (Type III tests)
+
+Response: height_cm
+               Sum Sq  Df   F value Pr(>F)    
+(Intercept)   1109.75   1 1061.8452 <2e-16 ***
+site             3.76   2    1.7979 0.1688    
+nematode         1.09   1    1.0465 0.3078    
+site:nematode    0.01   2    0.0070 0.9930    
+Residuals      176.63 169                     
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 Analysis of Deviance Table (Type III Wald chisquare tests)
 
 Response: height_cm
