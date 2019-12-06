@@ -103,14 +103,15 @@ sum(is.na(dat$height_cm[dat$genotype == "TO_0705"]))
 sum(is.na(dat$height_cm[dat$genotype == "TO_1503"]))
 
 
-#run the full model for main effects of site and nematode treatment and interaction effect.
-fitness_fullmodel <- lm(fruit_mass ~ site + nema_trt + site*nema_trt, data = dat)
+#First we'll run the classic two-way ANOVA as initially proposed, 
 
-#put results in an anova table. 
-anova(fitness_fullmodel)
+twoWayAnova <- lm(height_cm ~ site + nematode + site*nematode, data = dat, 
+                  contrasts = list(site = contr.sum, nematode = contr.sum))
 
-#How to specific random effects
+#To print the 
+Anova(twoWayAnova, type =  "III")
 
+#We can also run a 
 fullModel <- lmer(height_cm ~ site + nematode + site*nematode + (1|block) + (1|site:genotype), data = dat)
 #Model_noNesting <- lmer(height_cm ~ site + nematode + site*nematode + (1|block), data = dat)
 
@@ -118,17 +119,56 @@ Anova(fullModel, type = "III")
 #Anova(Model_noNesting, type = "III")
 
 #output the results
-out <- capture.output(Anova(fullModel, type = "III"))
+out <- capture.output(Anova(twoWayAnova, type =  "III")
+,Anova(fullModel, type = "III"))
 
 cat("Results", out, file="./results/fullModel_summary.txt", sep="\n", append=FALSE)
 
 #graph the results 
+SE <- function(x){
+  sd(x, na.rm=T)/sqrt(length(x))
+}
+
+TO_abs <- mean(dat$height_cm[dat$site == "TO" & dat$nematode == "abs"], na.rm = T)
+TO_abs_SE <- SE(dat$height_cm[dat$site == "TO" & dat$nematode == "abs"])
+TO_pres <- mean(dat$height_cm[dat$site == "TO" & dat$nematode == "pres"], na.rm = T)
+TO_pres_SE <- SE(dat$height_cm[dat$site == "TO" & dat$nematode == "pres"])
+PLE_abs <- mean(dat$height_cm[dat$site == "PLE" & dat$nematode == "abs"], na.rm = T)
+PLE_abs_SE <- SE(dat$height_cm[dat$site == "PLE" & dat$nematode == "abs"])
+PLE_pres <- mean(dat$height_cm[dat$site == "PLE" & dat$nematode == "pres"], na.rm = T)
+PLE_pres_SE <- SE(dat$height_cm[dat$site == "PLE" & dat$nematode == "pres"])
+MLBS_abs <- mean(dat$height_cm[dat$site == "MLBS" & dat$nematode == "abs"], na.rm = T)
+MLBS_abs_SE <- SE(dat$height_cm[dat$site == "MLBS" & dat$nematode == "abs"])
+MLBS_pres <- mean(dat$height_cm[dat$site == "MLBS" & dat$nematode == "pres"], na.rm = T)
+MLBS_pres_SE <- SE(dat$height_cm[dat$site == "MLBS" & dat$nematode == "pres"])
+
+fig_dat <- data.frame("nematode" = c(rep("pres", 3), rep("abs", 3)), "site" = rep(c("TO", "PLE", "MLBS"),2), 
+                      "height_cm" = c(TO_pres, PLE_pres, MLBS_pres, TO_abs, PLE_abs, MLBS_abs), 
+                      "SEs" = c(TO_pres_SE, PLE_pres_SE, MLBS_pres_SE, TO_abs_SE, PLE_abs_SE, MLBS_abs_SE))
+
+
+pdf("./results/TwoWayANOVA.pdf")
+ggplot(fig_dat, aes(x=site, y=height_cm, group=nematode, color=nematode)) + 
+  geom_point(position = position_dodge(width = 0.8))+
+  #geom_line(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8))+
+  geom_line(position = position_dodge(width = 0.8))+
+  geom_errorbar(aes(ymin=height_cm-SEs, ymax=height_cm+SEs), width = 0, position = position_dodge(width = 0.8))+
+  geom_point(data=dat, aes(x=site, y=height_cm, group=nematode, color=nematode), 
+             position=position_jitterdodge(dodge.width = 0.8, jitter.width = 0.2), alpha=1/3)+
+  theme_classic()+
+  ylab("Plant height (cm)")+
+  xlab("Population")+ 
+  ylim(0,5)
+dev.off()
+  
+
+
 
 #First get the effects that we can plot
 
 effects <- effect("site*nematode", fullModel) 
 
-pdf("./Results/FullModelFit.pdf")
+pdf("./results/FullModelFit.pdf")
 ggplot(dat, aes(x=site, y=height_cm, group=nematode, color=nematode)) + 
   geom_point(position=position_jitterdodge(dodge.width = 0.8, jitter.width = 0.2), alpha=1/3)+
   geom_line(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8))+
@@ -152,8 +192,4 @@ dev.off()
 #        data = subset(algae, height == "low"))
 # points(sqrtArea ~ c(jitter(as.numeric(herbivores), factor = 0.2) - adjustAmount), 
 #        data = subset(algae, height == "mid"), pch = 16)
-
-
-
-
 
