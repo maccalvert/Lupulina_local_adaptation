@@ -3,7 +3,7 @@ library(lme4)
 library(car)
 library(effects)
 
-setwd("~/Box/Wood_Rotation/Truncatula_local_adaptation/")
+setwd("~/Box/Wood_Rotation/Lupulina_local_adaptation/")
 
 #load in the data 
 dat <- read.csv("./data/unique_IDs_lupulina_leaves112219.csv")
@@ -149,7 +149,7 @@ fig_dat <- data.frame("nematode" = c(rep("pres", 3), rep("abs", 3)), "site" = re
 
 pdf("./results/TwoWayANOVA.pdf")
 ggplot(fig_dat, aes(x=site, y=height_cm, group=nematode, color=nematode)) + 
-  geom_point(position = position_dodge(width = 0.8))+
+  geom_point(position = position_dodge(width = 0.8), shape=15, size=2.5)+
   #geom_line(data = as.data.frame(effects), aes(x=site, y=fit, color = nematode, fill=nematode), position = position_dodge(width = 0.8))+
   geom_line(position = position_dodge(width = 0.8))+
   geom_errorbar(aes(ymin=height_cm-SEs, ymax=height_cm+SEs), width = 0, position = position_dodge(width = 0.8))+
